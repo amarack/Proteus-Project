@@ -119,20 +119,20 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
 	def genRandomDates : LongValueHistogram = {
   		LongValueHistogram.newBuilder
   			.addAllDates(List.range(0, util.Random.nextInt(50))
-  			    .map(_ => LongValueHistogram.WeightedDate.newBuilder
-  			    			.setDate(util.Random.nextLong)
-  			    			.setWeight(util.Random.nextDouble)
-  			    			.build).asJava)
+  			    .map(_ => WeightedDate.newBuilder
+  			    		.setDate(util.Random.nextLong)
+  			    		.setWeight(util.Random.nextDouble)
+  			    		.build).asJava)
   			.build
   	}
   	
   	def genRandomTermHist : TermHistogram = {
   		TermHistogram.newBuilder
   			.addAllTerms(List.range(0, util.Random.nextInt(50))
-  			    .map(_ => TermHistogram.WeightedTerm.newBuilder
-  			    			.setTerm(genKey())
-  			    			.setWeight(util.Random.nextDouble)
-  			    			.build).asJava)
+  			    .map(_ => WeightedTerm.newBuilder
+  			    		.setTerm(genKey())
+  			    		.setWeight(util.Random.nextDouble)
+  			    		.build).asJava)
   			.build
   	}
   	

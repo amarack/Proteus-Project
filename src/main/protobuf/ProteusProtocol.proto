@@ -67,23 +67,23 @@ message TextRegion {
 	required int32 stop = 2; // Ending index (non-inclusive)
 }
 
+message WeightedTerm {
+	required string term = 1;
+	optional double weight = 2 [default = 1.0];
+}
+
 // A list of string (term) : weight (frequency) pairs. Used for language models, and other things.
-message TermHistogram {
-	message WeightedTerm {
-		required string term = 1;
-		optional double weight = 2 [default = 1.0];
-	}
-	
+message TermHistogram {	
 	repeated WeightedTerm terms = 1;
 }
 
+message WeightedDate {
+	required sint64 date = 1;
+	optional double weight = 2 [default = 1.0];
+}
+
 // A list of long values (dates) : weight (frequency) pairs. Used for date mentions, and other things.
-message LongValueHistogram {
-	message WeightedDate {
-		required sint64 date = 1;
-		optional double weight = 2 [default = 1.0];
-	}
-	
+message LongValueHistogram {	
 	repeated WeightedDate dates = 1;
 }
 

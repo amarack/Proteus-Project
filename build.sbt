@@ -31,3 +31,5 @@ libraryDependencies ++= Seq(
   "se.scalablesolutions.akka" % "akka-stm" % "1.2",
   "se.scalablesolutions.akka" % "akka-camel-typed" % "1.2"
 )
+
+publishArtifact in Compile := true
