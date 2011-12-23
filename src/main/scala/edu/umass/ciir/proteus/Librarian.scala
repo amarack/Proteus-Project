@@ -8,6 +8,8 @@ import scala.collection.JavaConverters._
 
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
+case class ServerSetting(hostname: String, port: Int)
+
 /**
  * The base trait for scala object model of the Proteus API.
  * Provides implicit conversion between strings and proteus types, as well as 
