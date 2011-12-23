@@ -50,7 +50,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	 * a given access identifier (which specifies a data resource). The response is returned as a Future.
 	 */
 	def getContents(id: AccessIdentifier, id_type: ProteusType, contents_type: ProteusType, 
-				num_requested: Int, start_at: Int, language: String) : Future[SearchResponse] = {
+				num_requested: Int = 100, start_at: Int = 0, language: String = "en") : Future[SearchResponse] = {
 	  
 		if(!contents_map(id_type).contains(contents_type))
 		  throw new IllegalArgumentException("Mismatched to/from types for getContents: (" + id_type.getValueDescriptor.getName + ", " + contents_type.getValueDescriptor.getName + ")")
@@ -362,5 +362,23 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	  	return (librarian_actor ? lookup_message).mapTo[Organization]
 	}
 
+  /** Utility functions to make interacting with the data easier **/
+
+  /**
+   * Take a ResultSummary and turn it into a string with html tags around the
+   * highlighted text regions.
+   */
+  def tagTerms(summary: ResultSummary, startTag: String = "<b>", endTag: String = "</b>") = wrapTerms(summary.getText, summary.getHighlightsList.asScala.toList, startTag=startTag, endTag=endTag)
+
+  protected def wrapTerms(description: String, locations: List[TextRegion], startTag: String, endTag: String) : String = {
+    if (locations.length == 0)
+       return ""
+    else if (locations.length == 1)
+       return startTag + description.slice(locations(0).getStart, locations(0).getStop) + endTag +
+    		   	description.slice(locations(0).getStop, description.length)
+    else
+       return startTag + description.slice(locations(0).getStart, locations(0).getStop) + endTag +
+    		   	description.slice(locations(0).getStop, locations(1).getStart) + wrapTerms(description, locations.drop(1), startTag, endTag)
+  }
 
 }

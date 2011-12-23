@@ -7,6 +7,8 @@ javaSource in PB.protobufConfig <<= (sourceDirectory in Compile)(_ / "generated"
 version in PB.protobufConfig := "2.3.0"
 
 name := "Proteus Project"
+
+organization := "edu.umass.ciir.proteus"
  
 scalaVersion := "2.9.1"
  
