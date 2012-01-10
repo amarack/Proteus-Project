@@ -260,13 +260,15 @@ message Search {
 
 // Get the container for this data resource: Returns SearchResponse (max length of 1), Only one step transforms allowed
 message ContainerTransform {
-	required AccessIdentifier id = 1;									// Look for a container for resource with this ID
+	required AccessIdentifier id = 1;				     	// Look for a container for resource with this ID
 	optional ProteusType from_type = 2;						// The Proteus Type of this resource
+	optional ProteusType to_type = 3;						// What container type to be finding
+	optional SearchParameters params = 4;					// Parameters for the search
 }
 
 // Get the contents for this data resource: Returns SearchResponse, Only one step transforms allowed
 message ContentsTransform {
-	required AccessIdentifier id = 1;									// Search for all the contents of resource with this ID
+	required AccessIdentifier id = 1;						// Search for all the contents of resource with this ID
 	optional ProteusType from_type = 2;						// Type of this resource
 	optional ProteusType to_type = 3;						// Which child type to return. (where applicable)
 	optional SearchParameters params = 4;					// Parameters for the search

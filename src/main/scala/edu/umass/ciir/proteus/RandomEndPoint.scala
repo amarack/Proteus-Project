@@ -163,24 +163,10 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
   	
   	protected def runContainerTransform(transform: ContainerTransform) : SearchResponse = {
   	  // Figure out what the correct container type is, then return a singleton response
-  	  val cType = containerFor(transform.getFromType)
-  	  val result = if (cType == null) {// This is a type which contains itself (i.e. top of hierarchy: Collection)
-  	      SearchResult.newBuilder
-  	    		  .setId(transform.getId)
-  	    		  .setProteusType(transform.getFromType)
-  	    		  .setTitle("Title: " + genKey())
-  	    		  .setSummary(generateRandomSummary)
-  	    		  .setImgUrl(imgURLs(util.Random.nextInt(imgURLs.length)))
-  	    		  .setThumbUrl(thumbURLs(util.Random.nextInt(thumbURLs.length)))
-        		  .setExternalUrl(extLinks(util.Random.nextInt(extLinks.length)))
-  	    		  .build
-  	  } else { // Just generate a random result of the correct type
-  		  generateRandomResult(cType(util.Random.nextInt(cType.length)))
-  	  }
+  	  val result = genNRandomResults(transform.getToType, util.Random.nextInt(transform.getParams.getNumRequested))
   	  
-  	  // Only one SearchResult is returned by this transformation
   	  return SearchResponse.newBuilder
-  			  .addResults(result)
+  			  .addAllResults(result.asJava)
   			  .build
   	}
   	

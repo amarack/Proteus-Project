@@ -264,7 +264,7 @@ trait LibrarianQueryManagement { this: Actor =>
     	  	if (future_result != null)
     	  		future_result onResult { case r: SearchResponse => chan ! r }
         
-      case trans: ContentsTransform => // If you support the To Type then you must be able to get the contents
+      case trans: ContentsTransform => // If you support the To Type then you must be able to get the contents (equivalent statement as above)
         val members = groupMemberTypeSupport(trans.getToType, getGroupId(trans.getId))
     	  	val chan = self.channel
     	  	val future_result = sendOrForwardTo(members, trans)
@@ -445,7 +445,7 @@ trait LibrarianLookupManagement { this: Actor =>
     			  .build)
     	  	else {
     	      val chan = self.channel
-    	      (lib_actor ? lookup) onResult { case r => chan ! r }
+    	      (lib_actor ? lookup) onResult { case r => println("replying with location " + r); chan ! r }
     	    }
 //    	  	else lib_actor forward lookup
     	  	

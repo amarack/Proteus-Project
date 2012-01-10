@@ -74,10 +74,15 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	/**
 	 * Get the reference result for the containing data resource of of this access identifier
 	 */
-	def getContainer(id: AccessIdentifier, id_type: ProteusType) : Future[SearchResponse] = {
+	def getContainer(id: AccessIdentifier, id_type: ProteusType, container_type: ProteusType) : Future[SearchResponse] = {
+	   if((!container_map.contains(id_type) && id_type != container_type) || (container_map.contains(id_type) && !container_map(id_type).contains(container_type)))
+		  throw new IllegalArgumentException("Mismatched to/from types for getContainer: (" + id_type.getValueDescriptor.getName + ", " + container_type.getValueDescriptor.getName + ")")
+		
+	  		
 	    val transform_message = ContainerTransform.newBuilder
 			  	.setId(id)
 			  	.setFromType(id_type)
+			  	.setToType(container_type)
 			  	.build
 			  
 	    return (librarian_actor ? transform_message).mapTo[SearchResponse]
@@ -336,6 +341,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	 * Request the librarian look up a Location by its result reference
 	 */
 	def lookupLocation(result: SearchResult) : Future[Location] = {
+	    println("Looking up location..")
 		// Sanity checking first
 		if (result.getProteusType != ProteusType.LOCATION)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
@@ -344,6 +350,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	  			.setId(result.getId)
 	  			.build
 	  			
+	  	println("Sending location request from client... " + lookup_message)
 	  	return (librarian_actor ? lookup_message).mapTo[Location]
 	}
 	
