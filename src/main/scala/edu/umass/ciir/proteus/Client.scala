@@ -74,7 +74,9 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	/**
 	 * Get the reference result for the containing data resource of of this access identifier
 	 */
-	def getContainer(id: AccessIdentifier, id_type: ProteusType, container_type: ProteusType) : Future[SearchResponse] = {
+	def getContainer(id: AccessIdentifier, id_type: ProteusType, container_type: ProteusType, 
+				num_requested: Int = 100, start_at: Int = 0, language: String = "en") : Future[SearchResponse] = {
+	  
 	   if((!container_map.contains(id_type) && id_type != container_type) || (container_map.contains(id_type) && !container_map(id_type).contains(container_type)))
 		  throw new IllegalArgumentException("Mismatched to/from types for getContainer: (" + id_type.getValueDescriptor.getName + ", " + container_type.getValueDescriptor.getName + ")")
 		
@@ -86,6 +88,55 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 			  	.build
 			  
 	    return (librarian_actor ? transform_message).mapTo[SearchResponse]
+	}
+	
+	private def recurseHierarchy(result: SearchResult, type_path: List[ProteusType], 
+	    num_requested: Int, language: String, ascend: Boolean = false) : Future[List[SearchResult]] = {
+	  
+	  if (type_path.length == 1)
+	    return Future { List(result) }
+	  else {
+	    val converted = if(!ascend) getContents(result.getId, type_path(0), type_path(1), num_requested=num_requested,language=language)
+	    				else getContainer(result.getId, type_path(0), type_path(1), num_requested=num_requested, language=language)
+	    				
+	    val recursed = converted flatMap {
+	      next_results => 
+	        val result_list = next_results.getResultsList.asScala
+			Future.traverse(result_list)(result => 
+			  recurseHierarchy(result, type_path.drop(1), scala.math.ceil(num_requested.toDouble / result_list.length).toInt, language, ascend = ascend))
+	    }
+	    return recursed map { _.flatten.toList }
+	  }
+	}
+	
+    /**
+	 * A transformation query which gets the contents (reference requests) belonging to 
+	 * a given access identifier (which specifies a data resource). The response is returned as a Future.
+	 */
+	def getDescendants(start_item: SearchResult, type_path: List[ProteusType], 
+				num_requested: Int = 100, language: String = "en") : Future[List[SearchResult]] = {
+	  
+	    // Verify that the type_path is a valid path
+	    if(!type_path.dropRight(1).zip(type_path.drop(1)).forall(t => contents_map(t._1).contains(t._2)))
+		  throw new IllegalArgumentException("Mismatched type path for getDescendants: (" + type_path.map(_.getValueDescriptor.getName).mkString(", ") + ")")
+		
+	    // Recursively go through and getContents, until we reach the end...
+	    val results = recurseHierarchy(start_item, type_path, num_requested, language)
+	    return results
+	}
+	
+	/**
+	 * Get the reference result for the containing data resource of of this access identifier
+	 */
+	def getAncesters(start_item: SearchResult, type_path: List[ProteusType], 
+				num_requested: Int = 100, language: String = "en") : Future[List[SearchResult]] = {
+	   // Verify that the type_path is a valid path
+	    if(!type_path.dropRight(1).zip(type_path.drop(1)).forall(t => container_map(t._1).contains(t._2)))
+		  throw new IllegalArgumentException("Mismatched type path for getAncesters: (" + type_path.map(_.getValueDescriptor.getName).mkString(", ") + ")")
+		
+	    // Recursively go through and getContainer, until we reach the end...
+	    val results = recurseHierarchy(start_item, type_path, num_requested, language, ascend=true)
+	    return results
 	}
 	
 	/**
@@ -285,7 +336,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.PICTURE)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupPicture.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
@@ -300,7 +351,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.VIDEO)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupVideo.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
@@ -315,7 +366,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.AUDIO)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupAudio.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
@@ -330,7 +381,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.PERSON)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupPerson.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
@@ -346,7 +397,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.LOCATION)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupLocation.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
@@ -362,7 +413,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		if (result.getProteusType != ProteusType.ORGANIZATION)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
 	  
-		val lookup_message = LookupPage.newBuilder
+		val lookup_message = LookupOrganization.newBuilder
 	  			.setId(result.getId)
 	  			.build
 	  			
