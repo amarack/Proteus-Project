@@ -7,6 +7,51 @@ import scala.collection.JavaConverters._
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
 /**
+ * Random End Point (Library resource) class
+ * Once the data store trait is completed it is an extremely simple class to create.
+ * 
+ * myServer describes where this library server is running
+ * librarian describes where the librarian/manager is running, in order to notify it of our existence
+ */
+class RandomEndPoint(myServer: ServerSetting, librarian: ServerSetting) extends 
+	LibraryServer with 
+	EndPointConnectionManagement with
+	EndPointQueryManagement with
+	EndPointLookupManagement with 
+	RandomDataStore {
+  
+    val serverHostname : String = myServer.hostname
+	val serverPort : Int = myServer.port
+	val serverGroupID : String = "randProteus"
+	var connection : ConnectLibrary = buildConnection
+	
+	override def preStart() = {
+      super.preStart
+      connectToLibrarian(librarian.hostname, librarian.port)
+	}
+}
+
+/**
+ * A little app to let us run this end point
+ */
+object randEndPointApp extends App {
+  val libraryService = try {
+	val mysettings = ServerSetting(args(0), args(1).toInt)
+	try {
+	  val librarySettings = ServerSetting(args(2), args(3).toInt)
+	  actorOf(new RandomEndPoint(mysettings, librarySettings)).start()
+	} catch {
+	  case _ => println("Library connection settings not given on command line using defaults.")
+	  	    actorOf(new RandomEndPoint(mysettings, ServerSetting(mysettings.hostname, 8081))).start()
+	}
+  } catch {
+	case _ => println("No arguments supplied using defaults.")
+		  actorOf(new RandomEndPoint(ServerSetting("localhost", 8082), ServerSetting("localhost", 8081))).start()
+  }	
+}
+
+/********* Implementation of the Random End Point / Random Library *************/
+/**
  * A random data store implementation. Useful as an example of how to implement an end point easily.
  */
 trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
@@ -488,48 +533,3 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     
     
 }
-
-
-/**
- * The class which is actually used for an end point (random). 
- * Once the data store trait is completed it is an extremely simple class to create.
- */
-class RandomEndPoint(myServer: ServerSetting, library: ServerSetting) extends 
-	LibraryServer with 
-	EndPointConnectionManagement with
-	EndPointQueryManagement with
-	EndPointLookupManagement with 
-	RandomDataStore {
-  
-    val serverHostname : String = myServer.hostname
-	val serverPort : Int = myServer.port
-	val serverGroupID : String = "randProteus"
-	var connection : ConnectLibrary = buildConnection
-	
-	override def preStart() = {
-      super.preStart
-      connectToLibrarian(library.hostname, library.port)
-	}
-    
-	
-}
-
-/**
- * A little app to let us run this end point
- */
-object randEndPointApp extends App {
-  val libraryService = try {
-	val mysettings = ServerSetting(args(0), args(1).toInt)
-	try {
-	  val librarySettings = ServerSetting(args(2), args(3).toInt)
-	  actorOf(new RandomEndPoint(mysettings, librarySettings)).start()
-	} catch {
-	  case _ => println("Library connection settings not given on command line using defaults.")
-	  	    actorOf(new RandomEndPoint(mysettings, ServerSetting(mysettings.hostname, 8081))).start()
-	}
-  } catch {
-	case _ => println("No arguments supplied using defaults.")
-		  actorOf(new RandomEndPoint(ServerSetting("localhost", 8082), ServerSetting("localhost", 8081))).start()
-  }	
-}
-

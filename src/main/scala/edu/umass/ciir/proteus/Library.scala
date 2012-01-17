@@ -7,40 +7,10 @@ import scala.collection.JavaConverters._
 
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
-/**
- * Abstract base class which contains abstract methods for all the methods that a data store (library/endpoint) trait 
- * needs to implement.
+/** 
+ * Traits for building a fairly basic library (end point). 
+ * All that it requires is an implementation of EndPointDataStore 
  */
-abstract trait EndPointDataStore {
-  	/** Methods Used Here and Elsewhere (MUST BE PROVIDED) **/
-  	protected def getSupportedTypes : List[ProteusType]
-  	protected def getDynamicTransforms : List[DynamicTransformID]
-	
-	/** Core Functionality Methods (MUST BE PROVIDED) **/
-    protected def supportsType(ptype: ProteusType) : Boolean
-	protected def supportsDynTransform(dtID: DynamicTransformID) : Boolean
-	
-  	protected def runSearch(s: Search) : SearchResponse
-  	
-  	protected def runContainerTransform(transform: ContainerTransform) : SearchResponse
-  	protected def runContentsTransform(transform: ContentsTransform) : SearchResponse
-  	protected def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse
-  	protected def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse
-  	protected def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse
-  	protected def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse
-  	protected def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse
-  	protected def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse
-  	protected def runDynamicTransform(transform: DynamicTransform) : SearchResponse
-  	
-  	protected def lookupCollection(accessID: AccessIdentifier) : Collection
-    protected def lookupPage(accessID: AccessIdentifier) : Page
-    protected def lookupPicture(accessID: AccessIdentifier) : Picture
-    protected def lookupVideo(accessID: AccessIdentifier) : Video
-    protected def lookupAudio(accessID: AccessIdentifier) : Audio
-    protected def lookupPerson(accessID: AccessIdentifier) : Person
-    protected def lookupLocation(accessID: AccessIdentifier) : Location
-    protected def lookupOrganization(accessID: AccessIdentifier) : Organization
-}
 
 /**
  * Trait for providing connection management for the end points of the system.
@@ -52,9 +22,12 @@ trait EndPointConnectionManagement { this: Actor =>
     def serverHostname : String
 	def serverPort : Int
 	def proteus_service_name : String
-	
+    protected def getSupportedTypes : List[ProteusType]
+  	protected def getDynamicTransforms : List[DynamicTransformID]
+    
     var connection : ConnectLibrary // This gets set elsewhere
 	
+    // Build the connectlibrary object we will send to the librarian
 	def buildConnection : ConnectLibrary = {
       return ConnectLibrary.newBuilder
     		  	.setHostname(serverHostname)
@@ -65,22 +38,20 @@ trait EndPointConnectionManagement { this: Actor =>
     		  	.build
     }
     
-    protected def getResourceKey : String = connection.getRequestedKey
-    
-    protected def getSupportedTypes : List[ProteusType]
-  	protected def getDynamicTransforms : List[DynamicTransformID]
-    
+    /** Get the resource key/id for this library */
+    protected def getResourceKey : String = connection.getRequestedKey  
+    /** Connect to the specified librarian */
     protected def connectToLibrarian(hostName: String, port: Int) {
 		val librarian = remote.actorFor(proteus_service_name, hostName, port)
 		librarian ! connection
     }
-  	
+  	/** Prepare a search response for sending to the client by adding our resource id to it */
   	protected def prepareToSend(response: SearchResponse) : SearchResponse = {
       val builder = response.toBuilder
       builder.getResultsList.asScala.foreach(r => r.toBuilder.getIdBuilder.setResourceId(getResourceKey))
       return builder.build
     }
-  
+  	/** Handle messages related to connecting to the librarian (or if we were to act as a secondary librarian) */
 	protected def connectionManagement : Receive = {
     	case c: LibraryConnected =>
     		// Check that we connected successfully, and without errors
@@ -99,7 +70,6 @@ trait EndPointConnectionManagement { this: Actor =>
  * be implemented elsewhere.
  */
 trait EndPointQueryManagement { this: Actor =>
-  	
     /**
      * If your end point does not support direct searches, 
      * then return empty results and no error.
@@ -182,7 +152,6 @@ trait EndPointQueryManagement { this: Actor =>
     	  	val chan = self.channel
     	  	Future { prepareToSend(runDynamicTransform(dtrans)) } onResult { case r: SearchResponse => chan ! r }
   	}
-    	  	
 }
 
 /**

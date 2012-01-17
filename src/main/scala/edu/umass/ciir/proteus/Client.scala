@@ -6,17 +6,14 @@ import akka.dispatch.Future
 import scala.collection.JavaConverters._
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
-
 /**
  * Class used by client programs to interact with the librarian/manager.
  */
-class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
-	  
+class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {  
     // The connection to the librarian
 	val librarian_actor = remote.actorFor(proteus_service_name, libHostName, libPort)
   
 	/*** Query & Transform Methods ***/
-	
 	/**
 	 * Queries the librarian for the query text (text) over the requested types (types_requested). 
 	 * The result is a Future for a SearchResponse. The results of which can be then looked up to get 
@@ -24,7 +21,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	 */
 	def query(text: String, types_requested: List[ProteusType], 
 			  num_requested: Int = 100, start_at: Int = 0, language: String = "en") : Future[SearchResponse] = {
-	
+		// Build the parts of the message
 		val search_params = SearchParameters.newBuilder
 				.setNumRequested(num_requested)
 				.setStartAt(start_at)
@@ -40,7 +37,7 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 		val search_message = Search.newBuilder
 				.setSearchQuery(search_request)
 				.build
-				
+		// Send the message to the librarian		
 		val response = librarian_actor ? search_message
 		return response.mapTo[SearchResponse]
 	} 
@@ -90,6 +87,10 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	    return (librarian_actor ? transform_message).mapTo[SearchResponse]
 	}
 	
+	/**
+	 * Recursively move through the type_path obeying the type hierarchy and either go ascending or descending.
+	 * Once we've reached the end of the types list return those searchresults.
+	 */
 	private def recurseHierarchy(result: SearchResult, type_path: List[ProteusType], 
 	    num_requested: Int, language: String, ascend: Boolean = false) : Future[List[SearchResult]] = {
 	  
@@ -392,7 +393,6 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	 * Request the librarian look up a Location by its result reference
 	 */
 	def lookupLocation(result: SearchResult) : Future[Location] = {
-	    println("Looking up location..")
 		// Sanity checking first
 		if (result.getProteusType != ProteusType.LOCATION)
 			throw new IllegalArgumentException("Mismatched type with lookup method")
@@ -401,7 +401,6 @@ class LibrarianClient(libHostName: String, libPort: Int) extends ProteusAPI {
 	  			.setId(result.getId)
 	  			.build
 	  			
-	  	println("Sending location request from client... " + lookup_message)
 	  	return (librarian_actor ? lookup_message).mapTo[Location]
 	}
 	
