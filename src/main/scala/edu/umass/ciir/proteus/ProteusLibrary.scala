@@ -9,7 +9,7 @@ import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
 // ServerSetting is used to pass around the hostname and port for connecting to some server.
 case class ServerSetting(hostname: String, port: Int)
-
+case class EndPointConfiguration(dataType : ProteusType, resourcePath: String)
 /**
  * The base trait for scala object model of the Proteus API.
  * Provides implicit conversion between strings and proteus types, as well as 
@@ -101,32 +101,114 @@ trait RandomDataGenerator {
  * needs to implement.
  */
 abstract trait EndPointDataStore {
+  
+	protected def unsupportedResponse(method: String): SearchResponse = SearchResponse.newBuilder.setError("Unsupported by end point: " + method).build
+  
   	/** Methods Used Here and Elsewhere (MUST BE PROVIDED) **/
-  	protected def getSupportedTypes : List[ProteusType]
-  	protected def getDynamicTransforms : List[DynamicTransformID]
+	def getResourceKey : String
+  	def getSupportedTypes : List[ProteusType]
 	
 	/** Core Functionality Methods (MUST BE PROVIDED) **/
-    protected def supportsType(ptype: ProteusType) : Boolean
-	protected def supportsDynTransform(dtID: DynamicTransformID) : Boolean
+    def initialize(configuration: EndPointConfiguration) {}
 	
-  	protected def runSearch(s: Search) : SearchResponse
+	def supportsType(ptype: ProteusType) : Boolean
+	def supportsDynTransform(dtID: DynamicTransformID) : Boolean
+	
+	
+  	def getDynamicTransforms : List[DynamicTransformID] = List[DynamicTransformID]()
+	def runSearch(s: Search) : SearchResponse = unsupportedResponse("Search")
   	
-  	protected def runContainerTransform(transform: ContainerTransform) : SearchResponse
-  	protected def runContentsTransform(transform: ContentsTransform) : SearchResponse
-  	protected def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse
-  	protected def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse
-  	protected def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse
-  	protected def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse
-  	protected def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse
-  	protected def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse
-  	protected def runDynamicTransform(transform: DynamicTransform) : SearchResponse
+  	def runContainerTransform(transform: ContainerTransform) : SearchResponse = unsupportedResponse("Container Transform")  	
+  	def runContentsTransform(transform: ContentsTransform) : SearchResponse = unsupportedResponse("Contents Transform")  	
+  	def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse = unsupportedResponse("Overlaps Transform")  	
+  	def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse = unsupportedResponse("Occurrences as Object") 	
+  	def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse  = unsupportedResponse("Occurrences as Subject") 	
+  	def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse = unsupportedResponse("Occurrences having Object")  	
+  	def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse  = unsupportedResponse("Occurrences having Subject")  	
+  	def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse  = unsupportedResponse("Nearby Locations")
+  	def runDynamicTransform(transform: DynamicTransform) : SearchResponse = unsupportedResponse("Dynamic Transform")
   	
-  	protected def lookupCollection(accessID: AccessIdentifier) : Collection
-    protected def lookupPage(accessID: AccessIdentifier) : Page
-    protected def lookupPicture(accessID: AccessIdentifier) : Picture
-    protected def lookupVideo(accessID: AccessIdentifier) : Video
-    protected def lookupAudio(accessID: AccessIdentifier) : Audio
-    protected def lookupPerson(accessID: AccessIdentifier) : Person
-    protected def lookupLocation(accessID: AccessIdentifier) : Location
-    protected def lookupOrganization(accessID: AccessIdentifier) : Organization
+  	
+  	def lookupCollection(accessID: AccessIdentifier) : Collection = {
+    	return Collection.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+  	}
+  	
+    def lookupPage(accessID: AccessIdentifier) : Page = {
+  		return Page.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    }
+    
+ 	
+
+    def lookupPicture(accessID: AccessIdentifier) : Picture = {
+  		return Picture.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    }
+    
+    def lookupVideo(accessID: AccessIdentifier) : Video = {
+  		return Video.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    }
+    
+    def lookupAudio(accessID: AccessIdentifier) : Audio = {
+  		return Audio.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    }
+    
+    def lookupPerson(accessID: AccessIdentifier) : Person = {
+  		return Person.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+
+    }   
+    
+    def lookupLocation(accessID: AccessIdentifier) : Location = {
+  		return Location.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    } 
+    
+    def lookupOrganization(accessID: AccessIdentifier) : Organization = {
+  		return Organization.newBuilder
+    			  .setId(AccessIdentifier.newBuilder
+    					  .setIdentifier(accessID.getIdentifier)
+    					  .setResourceId(getResourceKey)
+    					  .setError("error: lookup not supported by " + getResourceKey)
+    					  .build)
+    			  .build
+    } 
 }

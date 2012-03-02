@@ -105,7 +105,7 @@ message Collection {
 	// Collection specific fields
 	optional sint64 publication_date = 10;					// Date this collection was published
 	optional string publisher = 11;							// Publisher of the collection
-	optional string edition = 12;							// Edition this collection represents
+	optional string edition = 12;							// Edition this collection represents ---> TODO: Add creators here.
 	optional int32 num_pages = 13;							// Number of pages contained by this collection
 }
 

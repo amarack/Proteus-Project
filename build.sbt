@@ -31,7 +31,11 @@ libraryDependencies ++= Seq(
   "se.scalablesolutions.akka" % "akka-camel" % "1.2",
   "se.scalablesolutions.akka" % "akka-typed-actor" % "1.2",
   "se.scalablesolutions.akka" % "akka-stm" % "1.2",
-  "se.scalablesolutions.akka" % "akka-camel-typed" % "1.2"
+  "se.scalablesolutions.akka" % "akka-camel-typed" % "1.2", 
+  "joda-time" % "joda-time" % "2.0", 
+  "org.joda" % "joda-convert" % "1.1",
+  "org.lemurproject.galago" % "core" % "3.2",
+  "org.lemurproject.galago" % "tupleflow" % "3.2"
 )
 
 publishArtifact in Compile := true

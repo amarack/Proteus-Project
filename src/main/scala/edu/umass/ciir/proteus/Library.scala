@@ -7,6 +7,8 @@ import scala.collection.JavaConverters._
 
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
+
+
 /** 
  * Traits for building a fairly basic library (end point). 
  * All that it requires is an implementation of EndPointDataStore 
@@ -22,8 +24,8 @@ trait EndPointConnectionManagement { this: Actor =>
     def serverHostname : String
 	def serverPort : Int
 	def proteus_service_name : String
-    protected def getSupportedTypes : List[ProteusType]
-  	protected def getDynamicTransforms : List[DynamicTransformID]
+     def getSupportedTypes : List[ProteusType]
+  	 def getDynamicTransforms : List[DynamicTransformID]
     
     var connection : ConnectLibrary // This gets set elsewhere
 	
@@ -39,7 +41,7 @@ trait EndPointConnectionManagement { this: Actor =>
     }
     
     /** Get the resource key/id for this library */
-    protected def getResourceKey : String = connection.getRequestedKey  
+     def getResourceKey : String = connection.getRequestedKey  
     /** Connect to the specified librarian */
     protected def connectToLibrarian(hostName: String, port: Int) {
 		val librarian = remote.actorFor(proteus_service_name, hostName, port)
@@ -77,7 +79,7 @@ trait EndPointQueryManagement { this: Actor =>
      * If your end point does support searching, but not over 
      * ANY of the requested types, then return empty results and an error message.
      */
-  	protected def runSearch(s: Search) : SearchResponse
+  	 def runSearch(s: Search) : SearchResponse
   	
   	/**
   	 * For the transformation methods:
@@ -87,20 +89,20 @@ trait EndPointQueryManagement { this: Actor =>
   	 * 		If the type is supported but that operation is not (either in general or just for that type)
   	 * 		then return no results and no error message.
   	 */
-  	protected def runContainerTransform(transform: ContainerTransform) : SearchResponse
-  	protected def runContentsTransform(transform: ContentsTransform) : SearchResponse
-  	protected def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse 
-  	protected def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse 
-  	protected def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse 
-  	protected def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse 
-  	protected def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse 
-  	protected def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse 
+  	 def runContainerTransform(transform: ContainerTransform) : SearchResponse
+  	 def runContentsTransform(transform: ContentsTransform) : SearchResponse
+  	 def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse 
+  	 def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse 
+  	 def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse 
+  	 def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse 
+  	 def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse 
+  	 def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse 
   	
   	/**
   	 * If you get a dynamic transform that you do not support, return with no results 
   	 * and an error message. (Because would be a real bug)
   	 */
-  	protected def runDynamicTransform(transform: DynamicTransform) : SearchResponse 
+  	 def runDynamicTransform(transform: DynamicTransform) : SearchResponse 
   	protected def prepareToSend(response: SearchResponse) : SearchResponse
     
   	/**
@@ -160,14 +162,14 @@ trait EndPointQueryManagement { this: Actor =>
  */
 trait EndPointLookupManagement { this: Actor =>
   
-    protected def lookupCollection(accessID: AccessIdentifier) : Collection
-    protected def lookupPage(accessID: AccessIdentifier) : Page
-    protected def lookupPicture(accessID: AccessIdentifier) : Picture
-    protected def lookupVideo(accessID: AccessIdentifier) : Video
-    protected def lookupAudio(accessID: AccessIdentifier) : Audio
-    protected def lookupPerson(accessID: AccessIdentifier) : Person
-    protected def lookupLocation(accessID: AccessIdentifier) : Location
-    protected def lookupOrganization(accessID: AccessIdentifier) : Organization
+     def lookupCollection(accessID: AccessIdentifier) : Collection
+     def lookupPage(accessID: AccessIdentifier) : Page
+     def lookupPicture(accessID: AccessIdentifier) : Picture
+     def lookupVideo(accessID: AccessIdentifier) : Video
+     def lookupAudio(accessID: AccessIdentifier) : Audio
+     def lookupPerson(accessID: AccessIdentifier) : Person
+     def lookupLocation(accessID: AccessIdentifier) : Location
+     def lookupOrganization(accessID: AccessIdentifier) : Organization
     
     /**
      * Handle receiving the lookup messages. Note, the same bug affects this trait as well.

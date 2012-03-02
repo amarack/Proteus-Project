@@ -97,12 +97,12 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
 		  			   			
     /** Methods Defined Elsewhere **/
   	def containerFor(ptype: ProteusType) : List[ProteusType]
-  	protected def getResourceKey : String
+  	def getResourceKey : String
   	def numProteusTypes : Int
   	
   	/** Methods Used Here and Elsewhere (MUST BE PROVIDED) **/
-  	protected def getSupportedTypes : List[ProteusType] = List.range(0, numProteusTypes).map(i => ProteusType.valueOf(i))
-  	protected def getDynamicTransforms : List[DynamicTransformID] = {
+  	 def getSupportedTypes : List[ProteusType] = List.range(0, numProteusTypes).map(i => ProteusType.valueOf(i))
+  	 override def getDynamicTransforms : List[DynamicTransformID] = {
 	  val firstDTID = DynamicTransformID.newBuilder
 			  .setName("weird")
 			  .setFromType(ProteusType.COLLECTION)
@@ -119,18 +119,18 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
       return List(firstDTID, secondDTID, overloadedDTID)
 	}
     
-    protected def supportsType(ptype: ProteusType) : Boolean = true
-	protected def supportsDynTransform(dtID: DynamicTransformID) : Boolean = getDynamicTransforms.contains(dtID)
+     def supportsType(ptype: ProteusType) : Boolean = true
+	 def supportsDynTransform(dtID: DynamicTransformID) : Boolean = getDynamicTransforms.contains(dtID)
 	
     /** Internal Utility Methods **/
-    protected def generateRandomSummary : ResultSummary = {
+     def generateRandomSummary : ResultSummary = {
 	  return ResultSummary.newBuilder
 			  .setText("Summarizing... " + List.range(0, util.Random.nextInt(30)+2).map(_ => genKey()).mkString(" "))
 			  .addHighlights(TextRegion.newBuilder.setStart(0).setStop(util.Random.nextInt(10)+1).build)
 			  .build
 	}
 	
-	protected def generateRandomResult(ptype: ProteusType) : SearchResult = {
+	 def generateRandomResult(ptype: ProteusType) : SearchResult = {
         val accessID = AccessIdentifier.newBuilder
         			.setIdentifier(genKey())
         			.setResourceId(getResourceKey)
@@ -148,11 +148,11 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
         return result
     }
   
-	protected def genNRandomResults(ptype: ProteusType, N: Int) :  List[SearchResult] = {
+	 def genNRandomResults(ptype: ProteusType, N: Int) :  List[SearchResult] = {
 	  List.range(0, N).map(_ => generateRandomResult(ptype))
 	}
 	
-	protected def genSimpleRandomResponse(ptype: ProteusType, numReq: Int) : SearchResponse = {
+	 def genSimpleRandomResponse(ptype: ProteusType, numReq: Int) : SearchResponse = {
 	    val total_results = util.Random.shuffle(genNRandomResults(ptype, 
     		    util.Random.nextInt(numReq)))
 	  	  		
@@ -181,7 +181,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
   			.build
   	}
   	
-	protected def genRandCoordinates : Coordinates = {
+	 def genRandCoordinates : Coordinates = {
  	  val left = util.Random.nextInt(500)
  	  val up = util.Random.nextInt(500)
  	  
@@ -194,7 +194,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
  	}
 	
 	/** Core Functionality Methods (MUST BE PROVIDED) **/
-  	protected def runSearch(s: Search) : SearchResponse = {
+  	 override def runSearch(s: Search) : SearchResponse = {
   	  // For each type requested generate a random number of results
   	  val search_request = s.getSearchQuery
   	  val total_results = util.Random.shuffle(search_request.getTypesList.asScala
@@ -206,7 +206,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
   			  .build
   	}
   	
-  	protected def runContainerTransform(transform: ContainerTransform) : SearchResponse = {
+  	 override def runContainerTransform(transform: ContainerTransform) : SearchResponse = {
   	  // Figure out what the correct container type is, then return a singleton response
   	  val result = genNRandomResults(transform.getToType, util.Random.nextInt(transform.getParams.getNumRequested))
   	  
@@ -215,7 +215,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
   			  .build
   	}
   	
-  	protected def runContentsTransform(transform: ContentsTransform) : SearchResponse = {
+  	 override def runContentsTransform(transform: ContentsTransform) : SearchResponse = {
     	if (containerFor(transform.getToType) == null || !containerFor(transform.getToType).contains(transform.getFromType)) {
     	  return SearchResponse.newBuilder
     			  .setError("Error in runContentsTransform: Incompatible to/from proteus types")
@@ -225,7 +225,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
   	}
   	
-  	protected def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse = {
+  	 override def runOverlapsTransform(transform: OverlapsTransform) : SearchResponse = {
     	transform.getFromType match {
     	  // An example of an unsupported transform on a supported type
     	  case ProteusType.PERSON | ProteusType.LOCATION | ProteusType.ORGANIZATION => 
@@ -235,7 +235,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
   	}
   	
-  	protected def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse = {
+  	 override def runOccurAsObjTransform(transform: OccurAsObjTransform) : SearchResponse = {
     	transform.getFromType match {
     	  case ProteusType.PERSON | ProteusType.LOCATION | ProteusType.ORGANIZATION => 
     	      return genSimpleRandomResponse(ProteusType.PAGE, transform.getParams.getNumRequested)
@@ -246,7 +246,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}  
   	}
   	
-  	protected def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse  = {
+  	 override def runOccurAsSubjTransform(transform: OccurAsSubjTransform) : SearchResponse  = {
     	transform.getFromType match {
     	  case ProteusType.PERSON | ProteusType.LOCATION | ProteusType.ORGANIZATION => 
     	      return genSimpleRandomResponse(ProteusType.PAGE, transform.getParams.getNumRequested)
@@ -257,7 +257,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}  
   	}
   	
-  	protected def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse = {
+  	 override def runOccurHasObjTransform(transform: OccurHasObjTransform) : SearchResponse = {
     	transform.getFromType match {
     	  case ProteusType.PERSON | ProteusType.LOCATION | ProteusType.ORGANIZATION => 
     	      return genSimpleRandomResponse(ProteusType.PAGE, transform.getParams.getNumRequested)
@@ -268,7 +268,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}  
   	}
   	
-  	protected def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse  = {
+  	 override def runOccurHasSubjTransform(transform: OccurHasSubjTransform) : SearchResponse  = {
     	transform.getFromType match {
     	  case ProteusType.PERSON | ProteusType.LOCATION | ProteusType.ORGANIZATION => 
     	      return genSimpleRandomResponse(ProteusType.PAGE, transform.getParams.getNumRequested)
@@ -279,11 +279,11 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}  
   	}
   	
-  	protected def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse  = {
+  	 override def runNearbyLocationsTransform(transform: NearbyLocationsTransform) : SearchResponse  = {
     	return genSimpleRandomResponse(ProteusType.LOCATION, transform.getParams.getNumRequested)
   	}
   	
-  	protected def runDynamicTransform(transform: DynamicTransform) : SearchResponse = {
+  	 override def runDynamicTransform(transform: DynamicTransform) : SearchResponse = {
     	if (!getDynamicTransforms.contains(transform.getTransformId)) {
     	  // This indicates a bug in the routing from the librarian
     	  return SearchResponse.newBuilder
@@ -297,7 +297,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
   	}
   	
   	
-  	protected def lookupCollection(accessID: AccessIdentifier) : Collection = {
+  	 override def lookupCollection(accessID: AccessIdentifier) : Collection = {
     	if (accessID.getResourceId != getResourceKey) {
     	  return Collection.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -317,7 +317,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
           builder.setExternalUrl(extLinks(util.Random.nextInt(extLinks.length)))
   	      builder.setDateFreq(genRandomDates)
   	      builder.setLanguageModel(genRandomTermHist)
-  	      // Not setting the optional field language (defaults to english), as an example
+  	      // Not setting the optional field language (override defaults to english), as an example
   	      // builder.setLanguage("en")
   	      builder.setPublicationDate(util.Random.nextLong)
   	      builder.setPublisher("Publishing house of Umass")
@@ -327,7 +327,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
   	}
   	
-    protected def lookupPage(accessID: AccessIdentifier) : Page = {
+     override def lookupPage(accessID: AccessIdentifier) : Page = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Page.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -359,7 +359,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     
  	
 
-    protected def lookupPicture(accessID: AccessIdentifier) : Picture = {
+     override def lookupPicture(accessID: AccessIdentifier) : Picture = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Picture.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -388,7 +388,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
     }
     
-    protected def lookupVideo(accessID: AccessIdentifier) : Video = {
+     override def lookupVideo(accessID: AccessIdentifier) : Video = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Video.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -418,7 +418,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
     }
     
-    protected def lookupAudio(accessID: AccessIdentifier) : Audio = {
+     override def lookupAudio(accessID: AccessIdentifier) : Audio = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Audio.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -448,7 +448,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
     }
     
-    protected def lookupPerson(accessID: AccessIdentifier) : Person = {
+     override def lookupPerson(accessID: AccessIdentifier) : Person = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Person.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -476,7 +476,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
     }   
     
-    protected def lookupLocation(accessID: AccessIdentifier) : Location = {
+     override def lookupLocation(accessID: AccessIdentifier) : Location = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Location.newBuilder
     			  .setId(AccessIdentifier.newBuilder
@@ -504,7 +504,7 @@ trait RandomDataStore extends EndPointDataStore with RandomDataGenerator {
     	}
     } 
     
-    protected def lookupOrganization(accessID: AccessIdentifier) : Organization = {
+     override def lookupOrganization(accessID: AccessIdentifier) : Organization = {
   		if (accessID.getResourceId != getResourceKey) {
     	  return Organization.newBuilder
     			  .setId(AccessIdentifier.newBuilder
