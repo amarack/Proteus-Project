@@ -1,15 +1,10 @@
-import sbtprotobuf.{ProtobufPlugin=>PB}
 
-seq(PB.protobufSettings: _*)
-
-javaSource in PB.protobufConfig <<= (sourceDirectory in Compile)(_ / "generated")
-
-version in PB.protobufConfig := "2.3.0"
-
-name := "Proteus Project"
+name := "triton-galago"
 
 organization := "edu.umass.ciir.proteus"
  
+version := "0.1"
+
 scalaVersion := "2.9.1"
  
 resolvers ++= Seq(
@@ -25,13 +20,7 @@ resolvers ++= Seq(
 // when using the sbt web app plugin 0.2.4+, use "container" instead of "jetty" for the context
 // Customize any further dependencies as desired
 libraryDependencies ++= Seq(
-  "se.scalablesolutions.akka" % "akka-actor" % "1.2" % "compile",
-  "se.scalablesolutions.akka" % "akka-slf4j" % "1.2",
-  "se.scalablesolutions.akka" % "akka-remote" % "1.2",
-  "se.scalablesolutions.akka" % "akka-camel" % "1.2",
-  "se.scalablesolutions.akka" % "akka-typed-actor" % "1.2",
-  "se.scalablesolutions.akka" % "akka-stm" % "1.2",
-  "se.scalablesolutions.akka" % "akka-camel-typed" % "1.2", 
+  "edu.umass.ciir.proteus"    %% "triton-core" % "0.1",
   "joda-time" % "joda-time" % "2.0", 
   "org.joda" % "joda-convert" % "1.1",
   "org.lemurproject.galago" % "core" % "3.2",

@@ -1,24 +1,27 @@
-package edu.umass.ciir.proteus
+package edu.umass.ciir.proteus.triton.ext.galago
+
+import java.util.regex.Pattern
+
 import akka.actor.Actor
 import akka.actor.Actor._
 import akka.remoteinterface._
 import scala.collection.JavaConverters._
 
+//import org.joda._
+import org.joda.time.format._
+import org.joda.time._
+
+import edu.umass.ciir.proteus.triton.core._
 import edu.umass.ciir.proteus.protocol.ProteusProtocol._
 
 import org.lemurproject.galago.core.tools
 import org.lemurproject.galago.tupleflow.Parameters
 import org.lemurproject.galago.core.parse.Document
 import org.lemurproject.galago.core.parse.Tag
-import java.util.regex.Pattern
 
-//import org.joda._
-import org.joda.time.format._
-
-import org.joda.time._
 
 /**
- * Random End Point (Library resource) class
+ * Galago End Point (Library resource) class
  * Once the data store trait is completed it is an extremely simple class to create.
  * 
  * myServer describes where this library server is running
@@ -97,7 +100,7 @@ object galagoEndPointApp extends App {
 
 /********* Implementation of the Random End Point / Random Library *************/
 /**
- * A random data store implementation. Useful as an example of how to implement an end point easily.
+ * A data store implementation using Galago. Useful as an example of how to implement an end point easily.
  */
 trait GalagoDataStore extends EndPointDataStore with RandomDataGenerator {
 
